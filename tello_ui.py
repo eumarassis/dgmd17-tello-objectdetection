@@ -33,6 +33,9 @@ class TelloControlUI:
         self.object_detector = object_detector
 
         #Initialize Thread
+        self.is_connected = False
+        self.is_flying = False
+        self.is_streaming = False
         self.stopEvent = None
         self.thread = None
 
@@ -49,28 +52,63 @@ class TelloControlUI:
     
     def connect_handler (self):
         """Handle click to Connect. Connect to Tello Using Tello API."""
+        
+        if self.is_connected == True:
+            return
+            
         self.tello.connect()
 
         ttk.Label(self.frm, text="Battery: {}%".format( self.tello.get_battery())).grid(column=6, row=0)
 
+        self.is_connected = True
+
+        self.btn_connect['state'] = "disabled"
+        self.btn_takeoff['state'] = "normal"
+        self.btn_land['state'] = "normal"
+        self.btn_streamon['state'] = "normal"
+        self.btn_streamoff['state'] = "normal"
+        
+
     def takeoff_handler (self):
         """Handle click to Take off. Take off Using Tello API."""
+        
+        if self.is_connected == False:
+            return
+
         self.tello.takeoff()
+
+        self.is_flying = True
 
     def land_handler (self):
         """Handle click to Land. Land Using Tello API."""
+
+        if self.is_connected == False:
+            return
+
         self.tello.land()
+
+        self.is_flying = False
 
     def start_streaming_handler (self):
         """Handle click to Start streaming. Create thread to start capturing Tello feed."""
+
+        if self.is_connected == False or self.is_streaming == True:
+            return
+
+        self.is_streaming = True
         self.tello.streamon()
         self.thread = threading.Thread(target=self.video_capture_thread, args=())
         self.thread.start()
 
 
     def stop_streaming_handler (self):
-        """Handle click to Stop streaming. Stop Thread."""        
+        """Handle click to Stop streaming. Stop Thread."""
+
+        if self.is_connected == False or self.is_streaming == False:
+            return
+
         self.tello.streamoff()   
+        self.is_streaming = False
 
 
     def update_distance(self, event):
@@ -83,43 +121,80 @@ class TelloControlUI:
 
     def on_keypress_a(self, event):
         """Handle click to move drone using Tello API."""
+
+        if self.is_connected == False or self.is_flying == False:
+            return
+
         self.tello.move_up(self.distance)
 
     def on_keypress_z(self, event):
-        """Handle click to move drone using Tello API."""        
+        """Handle click to move drone using Tello API.""" 
+
+        if self.is_connected == False or self.is_flying == False:
+            return
+
         self.tello.move_down(self.distance)
 
     def on_keypress_s(self, event):
-        """Handle click to rotate drone using Tello API."""        
+        """Handle click to rotate drone using Tello API."""
+
+        if self.is_connected == False or self.is_flying == False:
+            return
+
         self.tello.rotate_counter_clockwise(self.degree)
 
     def on_keypress_d( self, event):
-        """Handle click to rotate drone using Tello API."""        
+        """Handle click to rotate drone using Tello API."""
+
+        if self.is_connected == False or self.is_flying == False:
+            return
+
         self.tello.rotate_clockwise(self.degree)
 
     def on_keypress_up(self,  event):
-        """Handle click to move drone using Tello API."""                
+        """Handle click to move drone using Tello API."""
+
+        if self.is_connected == False or self.is_flying == False:
+            return
+
         self.tello.move_forward(self.distance)
 
     def on_keypress_down(self, event):
-        """Handle click to move drone using Tello API."""        
+        """Handle click to move drone using Tello API."""
+
+        if self.is_connected == False or self.is_flying == False:
+            return
+
         self.tello.move_back(self.distance)
 
     def on_keypress_left(self, event):
-        """Handle click to move drone using Tello API."""                
+        """Handle click to move drone using Tello API."""
+
+        if self.is_connected == False or self.is_flying == False:
+            return
+
         self.tello.move_left(self.distance)
 
     def on_keypress_right(self, event):
-        """Handle click to move drone using Tello API."""                
+        """Handle click to move drone using Tello API."""
+
+        if self.is_connected == False or self.is_flying == False:
+            return
+
         self.tello.move_right(self.distance)
 
     def build_ui(self):
         """Build drone control UI using tkinter objects."""        
-        ttk.Button(self.frm, text="Connect", command=self.connect_handler).grid(row=0, column=1)
-        ttk.Button(self.frm, text="Take Off", command=self.takeoff_handler).grid(row=0, column=2)
-        ttk.Button(self.frm, text="Land", command=self.land_handler).grid(row=0, column=3)    
-        ttk.Button(self.frm, text="Start Streaming", command=self.start_streaming_handler).grid(row=0, column=4 )    
-        ttk.Button(self.frm, text="Stop Streaming", command=self.stop_streaming_handler).grid(row=0, column=5 )    
+        self.btn_connect = ttk.Button(self.frm, text="Connect", command=self.connect_handler)
+        self.btn_connect.grid(row=0, column=1)
+        self.btn_takeoff = ttk.Button(self.frm, text="Take Off", command=self.takeoff_handler, state = DISABLED)
+        self.btn_takeoff.grid(row=0, column=2)
+        self.btn_land = ttk.Button(self.frm, text="Land", command=self.land_handler, state = DISABLED)
+        self.btn_land.grid(row=0, column=3)    
+        self.btn_streamon = ttk.Button(self.frm, text="Start Streaming", command=self.start_streaming_handler, state = DISABLED)
+        self.btn_streamon.grid(row=0, column=4 )    
+        self.btn_streamoff = ttk.Button(self.frm, text="Stop Streaming", command=self.stop_streaming_handler, state = DISABLED)
+        self.btn_streamoff.grid(row=0, column=5 )    
 
         ttk.Label(self.frm, text=
                             'A - Move Tello Up\n'
