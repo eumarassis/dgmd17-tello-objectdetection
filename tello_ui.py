@@ -237,9 +237,6 @@ class TelloControlUI:
         Handle Tkinter Thread to capture drone video stream.
         """
         try:
-            #Sleep to allow screen update
-            # time.sleep(0.1)
-            
             while self.tello.stream_on == True:                
                 system = platform.system()
 
@@ -266,8 +263,6 @@ class TelloControlUI:
                     thread_tmp.start()
                     time.sleep(0.03)
                 
-                # time.sleep(0.5)  #Sleep to allow screen update
-
                 #Initialize Thread to Move Drone To keep people at the center
                 thread_movement = threading.Thread(target=self.move_drone_thread,args=(detected_people,))
                 thread_movement.start()
@@ -288,7 +283,7 @@ class TelloControlUI:
                 if (datetime.datetime.now() - self.last_move).total_seconds < 10:
                     return
 
-            print('[Check Moving]: Trying to move if person is there at', datetime.datetime.now())
+            # print('[Check Moving]: Trying to move if person is there at', datetime.datetime.now())
 
             person_idx = 0
             interested_class = [0]
@@ -299,11 +294,10 @@ class TelloControlUI:
             df_persons_xywh = df_xywh[(df_xywh['class'].isin(interested_class)) & (df_xywh['confidence'] > self.detection_threshold)]
             
             if not df_persons_xywh.empty:
+
+                print('[Identified Person]: Identified a person', datetime.datetime.now())
                 
                 if df_persons_xywh['xcenter'][person_idx] > img_xcenter:
-                    # Need to update distance 
-                    # self.update_distance()
-                    # for now moving 50 cm, need to calcualte the cm using pixel
                     print('[Moving]: Right by rotating clockwise 30', datetime.datetime.now())
                     self.tello.rotate_clockwise(30)
                     self.last_move = datetime.datetime.now()
