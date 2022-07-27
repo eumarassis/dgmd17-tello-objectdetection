@@ -252,47 +252,59 @@ class TelloControlUI:
                 #Call Object Detector 
                 detected_people = self.object_detector.detect_people(image) 
 
-                #filtering the detetcted people
-                interested_class = [0]
-                img_shape = detected_people.pandas().imgs[0].shape
-                img_xcenter = img_shape[1]/2
-                img_ycenter = img_shape[0]/2
-                df_xywh = detected_people.pandas().xywh[0]
-                df_persons_xywh = df_xywh[df_xywh['class'].isin(interested_class)]
-                df_xywhn = detected_people.pandas().xywhn[0]
-                df_persons_xywhn = df_xywhn[df_xywhn['class'].isin(interested_class)]
-                df_xyxy = detected_people.pandas().xyxy[0]
-                df_persons_xyxy = df_xyxy[df_xyxy['class'].isin(interested_class)]
-                df_xyxyn = detected_people.pandas().xyxyn[0]
-                df_persons_xyxyn = df_xyxyn[df_xyxyn['class'].isin(interested_class)]
-
-                #Draw People Bounding Boxes
-                image = self.object_detector.draw_bounding_boxes(image, detected_people, "Green", 1)
-
-                person_idx = 0
-                if not df_persons_xywh.empty:
-                    if df_persons_xywh['xcenter'][person_idx] > img_xcenter:
-                        # Need to update distance 
-                        # self.update_distance()
-                        # for now moving 50 cm, need to calcualte the cm using pixel
-                        self.tello.move_left(50)
-                    elif df_persons_xywh['xcenter'][person_idx] < img_xcenter:
-                        self.tello.move_right(50)
-                    elif df_persons_xywh['ycenter'][person_idx] > img_ycenter:
-                        self.tello.move_up(50)
-                    elif df_persons_xywh['ycenter'][person_idx] < img_ycenter:
-                        self.tello.move_down(50)
-
-                # Work aroud for compatibility problem between Tkinter,PIL and Macos
+                #Update Image UI Component with image captured
                 if system =="Windows" or system =="Linux":                
                     self.update_GUI_image(image)
-                else:
+                else: # Work around for MacOS
                     thread_tmp = threading.Thread(target=self.update_GUI_image,args=(image,))
                     thread_tmp.start()
-                    time.sleep(0.03)                                                            
+                    time.sleep(0.03)
+
+                #Initialize Thread to Move Drone To keep people at the center
+                thread_movement = threading.Thread(target=self.move_drone_thread,args=(detected_people,))
+                thread_movement.start()
+                time.sleep(0.03)                                                                                
         except:
             print("[INFO] RuntimeError on i")
             raise
+
+
+    def move_drone_thread(self, detected_people):
+
+        try:
+
+            if self.is_flying == False: #cant move the drone if not flying
+                return 
+
+            interested_class = [0]
+            img_shape = detected_people.pandas().imgs[0].shape
+            img_xcenter = img_shape[1]/2
+            img_ycenter = img_shape[0]/2
+            df_xywh = detected_people.pandas().xywh[0]
+            df_persons_xywh = df_xywh[df_xywh['class'].isin(interested_class)]
+            df_xywhn = detected_people.pandas().xywhn[0]
+            df_persons_xywhn = df_xywhn[df_xywhn['class'].isin(interested_class)]
+            df_xyxy = detected_people.pandas().xyxy[0]
+            df_persons_xyxy = df_xyxy[df_xyxy['class'].isin(interested_class)]
+            df_xyxyn = detected_people.pandas().xyxyn[0]
+            df_persons_xyxyn = df_xyxyn[df_xyxyn['class'].isin(interested_class)]
+
+            person_idx = 0
+
+            if not df_persons_xywh.empty:
+                if df_persons_xywh['xcenter'][person_idx] > img_xcenter:
+                    # Need to update distance 
+                    # self.update_distance()
+                    # for now moving 50 cm, need to calcualte the cm using pixel
+                    self.tello.move_left(50)
+                elif df_persons_xywh['xcenter'][person_idx] < img_xcenter:
+                    self.tello.move_right(50)
+                elif df_persons_xywh['ycenter'][person_idx] > img_ycenter:
+                    self.tello.move_up(50)
+                elif df_persons_xywh['ycenter'][person_idx] < img_ycenter:
+                    self.tello.move_down(50)
+        except:
+            print("[INFO] Unable to move drone to center people.")                    
 
     def update_GUI_image(self, image):
         """
