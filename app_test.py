@@ -12,10 +12,13 @@ def main():
     tello = Tello() 
 
     im1 = None
+
+    detection_threshold = 0.7
     
-# Images
+    # Images
     f = 'zidane.jpg'
-    torch.hub.download_url_to_file('https://ultralytics.com/images/' + f, f)  # download 2 images
+    # torch.hub.download_url_to_file('https://ultralytics.com/images/' + f, f)  # download 2 images
+    torch.hub.download_url_to_file('https://pjreddie.com/media/image/Screen_Shot_2018-03-24_at_10.48.42_PM.png', f)  # download 2 images
     im1 = Image.open('zidane.jpg')  # PIL image
 
 
@@ -29,14 +32,8 @@ def main():
     img_xcenter = img_shape[1]/2
     img_ycenter = img_shape[0]/2
     df_xywh = boundings.pandas().xywh[0]
-    df_persons_xywh = df_xywh[df_xywh['class'].isin(interested_class)]
-    df_xywhn = boundings.pandas().xywhn[0]
-    df_persons_xywhn = df_xywhn[df_xywhn['class'].isin(interested_class)]
-    df_xyxy = boundings.pandas().xyxy[0]
-    df_persons_xyxy = df_xyxy[df_xyxy['class'].isin(interested_class)]
-    df_xyxyn = boundings.pandas().xyxyn[0]
-    df_persons_xyxyn = df_xyxyn[df_xyxyn['class'].isin(interested_class)]
-
+    df_persons_xywh = df_xywh[(df_xywh['class'].isin(interested_class)) & (df_xywh['confidence'] > detection_threshold)]
+    
     print(boundings.pandas().imgs[0].shape)
     print(boundings.pandas().xyxy[0])
 
