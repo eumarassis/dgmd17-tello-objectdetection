@@ -252,6 +252,10 @@ class TelloControlUI:
                 #Call Object Detector 
                 detected_people = self.object_detector.detect_people(image) 
 
+                #Draw People Bounding Boxes
+                image = self.object_detector.draw_bounding_boxes(image, detected_people, "Green", 1)
+
+
                 #Update Image UI Component with image captured
                 if system =="Windows" or system =="Linux":                
                     self.update_GUI_image(image)
