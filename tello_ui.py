@@ -264,6 +264,8 @@ class TelloControlUI:
                     thread_tmp = threading.Thread(target=self.update_GUI_image,args=(image,))
                     thread_tmp.start()
                     time.sleep(0.03)
+                
+                time.sleep(0.5)  #Sleep to allow screen update
 
                 #Initialize Thread to Move Drone To keep people at the center
                 thread_movement = threading.Thread(target=self.move_drone_thread,args=(detected_people,))
@@ -279,7 +281,9 @@ class TelloControlUI:
         try:
 
             if self.is_flying == False: #cant move the drone if not flying
-                return 
+                return
+
+            time.sleep(1)  #1 second sleep to allow screen update and does not impact performance
 
             person_idx = 0
             interested_class = [0]
@@ -290,7 +294,7 @@ class TelloControlUI:
             df_persons_xywh = df_xywh[(df_xywh['class'].isin(interested_class)) & (df_xywh['confidence'] > self.detection_threshold)]
             
             if not df_persons_xywh.empty:
-                time.sleep(0.1)
+                
                 if df_persons_xywh['xcenter'][person_idx] > img_xcenter:
                     # Need to update distance 
                     # self.update_distance()
