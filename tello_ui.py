@@ -45,7 +45,7 @@ class TelloControlUI:
         #Set default move distance, degree and threshold
         self.distance = 20
         self.degree = 30
-        self.detection_threshold = 0.7
+        self.detection_threshold = 0.8
 
         #Subscribe to Window Close Event
         self.root.wm_protocol("WM_DELETE_WINDOW", self.on_close)
@@ -268,7 +268,7 @@ class TelloControlUI:
                 #Initialize Thread to Move Drone To keep people at the center
                 thread_movement = threading.Thread(target=self.move_drone_thread,args=(detected_people,))
                 thread_movement.start()
-                time.sleep(0.03)                                                                                
+                                                                                                
         except:
             print("[INFO] RuntimeError on i")
             raise
@@ -290,25 +290,24 @@ class TelloControlUI:
             df_persons_xywh = df_xywh[(df_xywh['class'].isin(interested_class)) & (df_xywh['confidence'] > self.detection_threshold)]
             
             if not df_persons_xywh.empty:
+                time.sleep(0.1)
                 if df_persons_xywh['xcenter'][person_idx] > img_xcenter:
                     # Need to update distance 
                     # self.update_distance()
                     # for now moving 50 cm, need to calcualte the cm using pixel
-                    print('move left')
-                    if self.is_flying == True: #cant move the drone if not flying
-                        self.tello.move_left(50)
+                    self.tello.rotate_clockwise(30)
+                    
+                    #self.tello.move_right(50)
                 elif df_persons_xywh['xcenter'][person_idx] < img_xcenter:
-                    print('move right')
-                    if self.is_flying == True: #cant move the drone if not flying
-                        self.tello.move_right(50)
+
+                    self.tello.rotate_counter_clockwise(30)
+                        
                 elif df_persons_xywh['ycenter'][person_idx] > img_ycenter:
                     print('move up')
-                    if self.is_flying == True: #cant move the drone if not flying
-                        self.tello.move_up(50)
+                    self.tello.move_up(50)
                 elif df_persons_xywh['ycenter'][person_idx] < img_ycenter:
                     print('move down')
-                    if self.is_flying == True: #cant move the drone if not flying
-                        self.tello.move_down(50)
+                    self.tello.move_down(50)
         except:
             print("[INFO] Unable to move drone to center people.")                    
 
