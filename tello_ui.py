@@ -46,6 +46,7 @@ class TelloControlUI:
         self.distance = 20
         self.degree = 30
         self.detection_threshold = 0.8
+        self.last_move = None
 
         #Subscribe to Window Close Event
         self.root.wm_protocol("WM_DELETE_WINDOW", self.on_close)
@@ -237,7 +238,7 @@ class TelloControlUI:
         """
         try:
             #Sleep to allow screen update
-            time.sleep(0.5)
+            # time.sleep(0.1)
             
             while self.tello.stream_on == True:                
                 system = platform.system()
@@ -265,7 +266,7 @@ class TelloControlUI:
                     thread_tmp.start()
                     time.sleep(0.03)
                 
-                time.sleep(0.5)  #Sleep to allow screen update
+                # time.sleep(0.5)  #Sleep to allow screen update
 
                 #Initialize Thread to Move Drone To keep people at the center
                 thread_movement = threading.Thread(target=self.move_drone_thread,args=(detected_people,))
@@ -283,7 +284,11 @@ class TelloControlUI:
             if self.is_flying == False: #cant move the drone if not flying
                 return
 
-            time.sleep(1)  #1 second sleep to allow screen update and does not impact performance
+            if self.last_move != None:
+                if (datetime.datetime.now() - self.last_move).total_seconds < 10:
+                    return
+
+            print('[Check Moving]: Trying to move if person is there at', datetime.datetime.now())
 
             person_idx = 0
             interested_class = [0]
@@ -299,21 +304,24 @@ class TelloControlUI:
                     # Need to update distance 
                     # self.update_distance()
                     # for now moving 50 cm, need to calcualte the cm using pixel
+                    print('[Moving]: Right by rotating clockwise 30', datetime.datetime.now())
                     self.tello.rotate_clockwise(30)
-                    
+                    self.last_move = datetime.datetime.now()
                     #self.tello.move_right(50)
                 elif df_persons_xywh['xcenter'][person_idx] < img_xcenter:
-
+                    print('[Moving]: Left by rotating counter clockwise 30', datetime.datetime.now())
                     self.tello.rotate_counter_clockwise(30)
-                        
+                    self.last_move = datetime.datetime.now()
                 elif df_persons_xywh['ycenter'][person_idx] > img_ycenter:
-                    print('move up')
+                    print('[Moving]: Move up', datetime.datetime.now())
                     self.tello.move_up(50)
+                    self.last_move = datetime.datetime.now()
                 elif df_persons_xywh['ycenter'][person_idx] < img_ycenter:
-                    print('move down')
+                    print('[Moving]: Move Down', datetime.datetime.now())
                     self.tello.move_down(50)
-        except:
-            print("[INFO] Unable to move drone to center people.")                    
+                    self.last_move = datetime.datetime.now()
+        except Exception as e:
+            print("[Error]:", e)                    
 
     def update_GUI_image(self, image):
         """
