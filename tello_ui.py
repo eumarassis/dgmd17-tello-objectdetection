@@ -270,17 +270,18 @@ class TelloControlUI:
                 image = self.object_detector.draw_bounding_boxes(image, detected_people, "Green", 1)
 
                 person_idx = 0
-                if df_persons_xywh['xcenter'][person_idx] > img_xcenter:
-                    # Need to update distance 
-                    # self.update_distance()
-                    # for now moving 50 cm, need to calcualte the cm using pixel
-                    self.tello.move_left(50)
-                elif df_persons_xywh['xcenter'][person_idx] < img_xcenter:
-                    self.tello.move_right(50)
-                elif df_persons_xywh['ycenter'][person_idx] > img_ycenter:
-                    self.tello.move_up(50)
-                elif df_persons_xywh['ycenter'][person_idx] < img_ycenter:
-                    self.tello.move_down(50)
+                if not df_persons_xywh.empty:
+                    if df_persons_xywh['xcenter'][person_idx] > img_xcenter:
+                        # Need to update distance 
+                        # self.update_distance()
+                        # for now moving 50 cm, need to calcualte the cm using pixel
+                        self.tello.move_left(50)
+                    elif df_persons_xywh['xcenter'][person_idx] < img_xcenter:
+                        self.tello.move_right(50)
+                    elif df_persons_xywh['ycenter'][person_idx] > img_ycenter:
+                        self.tello.move_up(50)
+                    elif df_persons_xywh['ycenter'][person_idx] < img_ycenter:
+                        self.tello.move_down(50)
 
                 # Work aroud for compatibility problem between Tkinter,PIL and Macos
                 if system =="Windows" or system =="Linux":                
