@@ -44,7 +44,8 @@ def main():
     if df_persons_xywh['xcenter'][person_idx] > img_xcenter:
         # Need to update distance 
         # self.update_distance()
-        # for now moving 50 cm, need to calcualte the cm using pixelprint('move left')# move_left()
+        # for now moving 50 cm, need to calcualte the cm using pixel
+        print('move left')# move_left()
     elif df_persons_xywh['xcenter'][person_idx] < img_xcenter:
         print('move right')# move_right()
     elif df_persons_xywh['ycenter'][person_idx] > img_ycenter:
