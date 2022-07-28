@@ -1,10 +1,12 @@
 ### dgmd17-tello-objectdetection - App ###
 from djitellopy import Tello
+from ai.azure_object_detector import AzureObjectDetector
 from ai.yolo_object_detector import YOLOObjectDetector
 import torch
 from PIL import Image
 import cv2
 import torch
+import numpy as np
 
 def main():
 
@@ -16,11 +18,21 @@ def main():
     detection_threshold = 0.7
     
     # Images
-    f = 'zidane.jpg'
-    # torch.hub.download_url_to_file('https://ultralytics.com/images/' + f, f)  # download 2 images
-    torch.hub.download_url_to_file('https://pjreddie.com/media/image/Screen_Shot_2018-03-24_at_10.48.42_PM.png', f)  # download 2 images
-    im1 = Image.open('zidane.jpg')  # PIL image
 
+    f = "img1.jpg"
+    torch.hub.download_url_to_file('https://ultralytics.com/images/zidane.jpg', f)  # download 2 images
+    #torch.hub.download_url_to_file('https://pjreddie.com/media/image/Screen_Shot_2018-03-24_at_10.48.42_PM.png', f)  # download 2 images
+    im1 = Image.open('img1.jpg')  # PIL image
+
+    detector = AzureObjectDetector()
+
+    bounding_boxes = detector.detect_people(im1)
+
+    img2 = Image.fromarray(detector.draw_bounding_boxes( np.array(im1), bounding_boxes))
+
+    img2.show()
+
+    return 
 
     #Initialize Object Detector
     detector = YOLOObjectDetector()

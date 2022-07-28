@@ -1,5 +1,6 @@
 ### dgmd17-tello-objectdetection - TelloUI ###
 
+from multiprocessing.dummy import Array
 from tkinter import *
 from tkinter import ttk
 from PIL import ImageTk, Image
@@ -18,7 +19,7 @@ from ai.object_detector import ObjectDetector
 class TelloControlUI:
     """Tello Control User Interface Class"""
 
-    def __init__(self,tello : Tello, object_detector : ObjectDetector ):
+    def __init__(self,tello : Tello, list_object_detector : Array ):
         print("INFO: Screen Class Initialized")
 
         #Initialize UI Componenets
@@ -30,7 +31,8 @@ class TelloControlUI:
         #Set Variables
         self.tello = tello
 
-        self.object_detector = object_detector
+        self.list_object_detector = list_object_detector
+        self.object_detector = list_object_detector[0][1]
 
         #Initialize Thread
         self.is_connected = False
@@ -185,6 +187,11 @@ class TelloControlUI:
 
         self.tello.move_right(self.distance)
 
+    def update_detector(self, event):
+        """Update the object detector based on the selection"""
+
+        self.object_detector = [x[1] for x in self.list_object_detector if x[0] == event ][0]
+
     def build_ui(self):
         """Build drone control UI using tkinter objects."""        
         self.btn_connect = ttk.Button(self.frm, text="Connect", command=self.connect_handler)
@@ -230,7 +237,15 @@ class TelloControlUI:
 
         self.image_panel = Label(self.root, image = photo, width=600, height=400)
         self.image_panel.image = photo
-        self.image_panel.grid(row=4)    
+        self.image_panel.grid(row=5) 
+
+        OPTIONS = [x[0] for x in self.list_object_detector]
+
+        variable = StringVar(self.root)
+        variable.set(OPTIONS[0]) # default value
+
+        self.opt_menu_detector = OptionMenu(self.root, variable, *OPTIONS, command=self.update_detector).grid(row=4) 
+
 
     def video_capture_thread(self):
         """
@@ -240,20 +255,19 @@ class TelloControlUI:
             while self.tello.stream_on == True:                
                 system = platform.system()
 
-                # read frame from tello stream
+                # Read frame from tello stream
                 frame = self.tello.get_frame_read().frame
                 if frame is None or frame.size == 0:
-                    continue 
+                    continue
             
                 # Convert the format from frame to image         
                 image = Image.fromarray(frame)
 
-                #Call Object Detector 
+                #Call Object Detector Class
                 detected_people = self.object_detector.detect_people(image) 
 
                 #Draw People Bounding Boxes
-                image = self.object_detector.draw_bounding_boxes(image, detected_people, "Green", 1)
-
+                image = self.object_detector.draw_bounding_boxes(image, detected_people)
 
                 #Update Image UI Component with image captured
                 if system =="Windows" or system =="Linux":                
@@ -266,6 +280,8 @@ class TelloControlUI:
                 #Initialize Thread to Move Drone To keep people at the center
                 thread_movement = threading.Thread(target=self.move_drone_thread,args=(detected_people,))
                 thread_movement.start()
+
+                
                                                                                                 
         except:
             print("[INFO] RuntimeError on i")
@@ -280,7 +296,7 @@ class TelloControlUI:
                 return
 
             if self.last_move != None:
-                if (datetime.datetime.now() - self.last_move).total_seconds < 10:
+                if (datetime.datetime.now() - self.last_move).seconds < 3:
                     return
 
             # print('[Check Moving]: Trying to move if person is there at', datetime.datetime.now())
@@ -325,7 +341,7 @@ class TelloControlUI:
             image = ImageTk.PhotoImage(image)
             self.image_panel = Label(self.root, image = image, width=600, height=400)
             self.image_panel.image = image
-            self.image_panel.grid(row=4) 
+            self.image_panel.grid(row=5) 
         except:
             print("[INFO] Error updating frame.")
 

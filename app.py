@@ -2,16 +2,17 @@
 from tello_ui import TelloControlUI
 from djitellopy import Tello
 from ai.yolo_object_detector import YOLOObjectDetector
+from ai.azure_object_detector import AzureObjectDetector
 
 def main():
 
     #Initialize Tello Control Object
     tello = Tello() 
 
-    #Initialize Object Detector
-    detector = YOLOObjectDetector()
+    #Initialize List of Object Detector
+    list_detector = [("YOLO: Real-Time Object Detection", YOLOObjectDetector()), ("Azure Cognitive Service - People Detector", AzureObjectDetector())]
 
-    tello_control_ui = TelloControlUI(tello, detector)
+    tello_control_ui = TelloControlUI(tello, list_detector)
     
 	#Build UI
     tello_control_ui.build_ui()
