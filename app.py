@@ -3,6 +3,7 @@ from tello_ui import TelloControlUI
 from djitellopy import Tello
 from ai.yolo_object_detector import YOLOObjectDetector
 from ai.azure_object_detector import AzureObjectDetector
+from ai.depth_perception import DepthPerceptionObjectDetector
 
 def main():
 
@@ -10,7 +11,7 @@ def main():
     tello = Tello() 
 
     #Initialize List of Object Detector
-    list_detector = [("YOLO: Real-Time Object Detection", YOLOObjectDetector()), ("Azure Cognitive Service - People Detector", AzureObjectDetector())]
+    list_detector = [("YOLO: Real-Time Object Detection", YOLOObjectDetector()), ("Self-Supervised Multi-Frame Monocular Depth", DepthPerceptionObjectDetector()), ("Azure Cognitive Service - People Detector", AzureObjectDetector())]
 
     tello_control_ui = TelloControlUI(tello, list_detector)
     

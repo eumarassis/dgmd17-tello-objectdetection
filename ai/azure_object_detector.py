@@ -28,7 +28,7 @@ class AzureObjectDetector (ObjectDetector):
         self.computervision_client = ComputerVisionClient(self.ENDPOINT, CognitiveServicesCredentials(self.KEY))
 
 
-    def detect_people (self, image: Image) -> np.ndarray:
+    def detect_people (self, image: Image,  previous_image : Image = None) -> np.ndarray:
         """Detect people and return bounding boxes of all people in the given image"""
 
         #Convert Image object into Buffer Stream
@@ -58,7 +58,7 @@ class AzureObjectDetector (ObjectDetector):
         """Return distance between bounding Boxes of all people in the given image"""
         pass
 
-    def draw_bounding_boxes (self,  image: Image, bounding_boxes: np.ndarray, color: Tuple = (0, 179, 60), border: int = 4 ) -> np.ndarray:
+    def draw_bounding_boxes (self,  image: Image, bounding_boxes: np.ndarray, color: Tuple = (0, 179, 60), border: int = 4, previous_image : Image = None ) -> np.ndarray:
         """Draw bounding boxes in the given image"""
         try:
             img_array = np.array(image)

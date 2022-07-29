@@ -51,6 +51,7 @@ class TelloControlUI:
         self.degree = 30
         self.detection_threshold = 0.8
         self.last_move = None
+        self.last_frame = None
 
         #Subscribe to Window Close Event
         self.root.wm_protocol("WM_DELETE_WINDOW", self.on_close)
@@ -276,15 +277,20 @@ class TelloControlUI:
                 frame = self.tello.get_frame_read().frame
                 if frame is None or frame.size == 0:
                     continue
+
             
                 # Convert the format from frame to image         
                 image = Image.fromarray(frame)
 
+                if self.last_frame != image:
+                    self.last_frame = image
+
+
                 #Call Object Detector Class
-                detected_people = self.object_detector.detect_people(image) 
+                detected_people = self.object_detector.detect_people(image, previous_image=self.last_frame) 
 
                 #Draw People Bounding Boxes
-                image = self.object_detector.draw_bounding_boxes(image, detected_people)
+                image = self.object_detector.draw_bounding_boxes(image, detected_people, previous_image=self.last_frame)
 
                 #Update Image UI Component with image captured
                 if system =="Windows" or system =="Linux":                

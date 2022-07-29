@@ -11,7 +11,7 @@ class ObjectDetector:
     def __init__(self):
         pass
 
-    def detect_people (self, image: Image) -> np.ndarray:
+    def detect_people (self, image: Image, previous_image : Image = None) -> np.ndarray:
         """Detect people and return bounding boxes of all people in the given image"""
         return np.ones((10, 10))
 
@@ -19,6 +19,6 @@ class ObjectDetector:
         """Return distance between bounding Boxes of all people in the given image"""
         pass
 
-    def draw_bounding_boxes (self,  image: Image, bounding_boxes: np.ndarray, color: Tuple = (0, 179, 60), border: int = 4 ) -> np.ndarray:
+    def draw_bounding_boxes (self,  image: Image, bounding_boxes: np.ndarray, color: Tuple = (0, 179, 60), border: int = 4,  previous_image : Image = None ) -> np.ndarray:
         """Draw bounding boxes in the given image"""
         return image
