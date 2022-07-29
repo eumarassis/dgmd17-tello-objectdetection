@@ -31,20 +31,25 @@ class AzureObjectDetector (ObjectDetector):
     def detect_people (self, image: Image) -> np.ndarray:
         """Detect people and return bounding boxes of all people in the given image"""
 
+        #Convert Image object into Buffer Stream
         buff = BytesIO()
         image.save(buff, format="JPEG")
         img_str = base64.b64encode(buff.getvalue())
 
+        #Azure requires buffer stream to be on a base 64 enconding
         buff = BytesIO(base64.b64decode(img_str))
 
+        #Call Azure Cloud APIs to detect people
         tags_result_remote = self.computervision_client.detect_objects_in_stream(buff)
 
         bounding_boxes = list()
 
+        #Navigate through all objects detected and only select people
         for x in tags_result_remote.objects:
             if x.object_property == 'person':
                 bounding_boxes.append(x.rectangle)
 
+        #Return bounding boxes numpy array
         return np.array(bounding_boxes)
 
     

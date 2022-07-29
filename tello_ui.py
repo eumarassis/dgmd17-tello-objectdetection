@@ -3,6 +3,8 @@
 from multiprocessing.dummy import Array
 from tkinter import *
 from tkinter import ttk
+from tkinter.scrolledtext import ScrolledText
+from turtle import width
 from PIL import ImageTk, Image
 from djitellopy import Tello
 import threading
@@ -24,7 +26,7 @@ class TelloControlUI:
 
         #Initialize UI Componenets
         self.root = Tk()
-        self.frm = ttk.Frame(self.root, padding=10)
+        self.frm = ttk.Frame(self.root, padding=20)
         self.frm.grid()
         self.root.wm_title("Tello Control App")
 
@@ -62,7 +64,7 @@ class TelloControlUI:
             
         self.tello.connect()
 
-        ttk.Label(self.frm, text="Battery: {}%".format( self.tello.get_battery())).grid(column=6, row=0)
+        self.log_ui_msg("Connected successfully. Battery: {}%".format( self.tello.get_battery()))
 
         self.is_connected = True
 
@@ -192,19 +194,28 @@ class TelloControlUI:
 
         self.object_detector = [x[1] for x in self.list_object_detector if x[0] == event ][0]
 
+    def log_ui_msg(self, message, new_line = True):
+        """Log message in the UI"""
+        self.text_log.insert('1.0', message + "\n" if new_line == True else message )
+
+
     def build_ui(self):
         """Build drone control UI using tkinter objects."""        
-        self.btn_connect = ttk.Button(self.frm, text="Connect", command=self.connect_handler)
-        self.btn_connect.grid(row=0, column=1)
-        self.btn_takeoff = ttk.Button(self.frm, text="Take Off", command=self.takeoff_handler, state = DISABLED)
-        self.btn_takeoff.grid(row=0, column=2)
-        self.btn_land = ttk.Button(self.frm, text="Land", command=self.land_handler, state = DISABLED)
-        self.btn_land.grid(row=0, column=3)    
-        self.btn_streamon = ttk.Button(self.frm, text="Start Streaming", command=self.start_streaming_handler, state = DISABLED)
-        self.btn_streamon.grid(row=0, column=4 )    
-        self.btn_streamoff = ttk.Button(self.frm, text="Stop Streaming", command=self.stop_streaming_handler, state = DISABLED)
-        self.btn_streamoff.grid(row=0, column=5 )    
 
+
+        #Drone Control Buttons
+        self.btn_connect = ttk.Button(self.frm, text="Connect", command=self.connect_handler)
+        self.btn_connect.grid(row=1, column=1)
+        self.btn_takeoff = ttk.Button(self.frm, text="Take Off", command=self.takeoff_handler, state = DISABLED)
+        self.btn_takeoff.grid(row=1, column=2)
+        self.btn_land = ttk.Button(self.frm, text="Land", command=self.land_handler, state = DISABLED)
+        self.btn_land.grid(row=1, column=3)    
+        self.btn_streamon = ttk.Button(self.frm, text="Start Streaming", command=self.start_streaming_handler, state = DISABLED)
+        self.btn_streamon.grid(row=1, column=4 )    
+        self.btn_streamoff = ttk.Button(self.frm, text="Stop Streaming", command=self.stop_streaming_handler, state = DISABLED)
+        self.btn_streamoff.grid(row=1, column=5 )    
+
+        #Drone Movements Labels
         ttk.Label(self.frm, text=
                             'A - Move Tello Up\n'
                             'Z - Move Tello Down\n'
@@ -222,7 +233,7 @@ class TelloControlUI:
 
         Scale(self.frm, from_=30, to=360, tickinterval=10, label='Degree', command=self.update_degree).grid(row=2, column=5)
 
-
+        #Bind Keyboard key to event handlers
         self.root.bind('<KeyPress-a>', self.on_keypress_a)
         self.root.bind('<KeyPress-z>', self.on_keypress_z)
         self.root.bind('<KeyPress-s>', self.on_keypress_s)
@@ -232,20 +243,26 @@ class TelloControlUI:
         self.root.bind('<KeyPress-Left>', self.on_keypress_left)
         self.root.bind('<KeyPress-Right>', self.on_keypress_right)
         
-        image = Image.open("tello-drone.jpg")
-        photo = ImageTk.PhotoImage(image)
-
-        self.image_panel = Label(self.root, image = photo, width=600, height=400)
-        self.image_panel.image = photo
-        self.image_panel.grid(row=5) 
-
+        #Build List of Object Detection Classess
         OPTIONS = [x[0] for x in self.list_object_detector]
 
         variable = StringVar(self.root)
         variable.set(OPTIONS[0]) # default value
 
-        self.opt_menu_detector = OptionMenu(self.root, variable, *OPTIONS, command=self.update_detector).grid(row=4) 
+        self.opt_menu_detector = OptionMenu(self.root, variable, *OPTIONS, command=self.update_detector).grid(row=3) 
 
+        #Create Logging Section
+        self.text_log = ScrolledText(self.root, width=80,  height=3)
+        self.text_log.grid(row=4)
+
+        #Show Image
+        image = Image.open("tello-drone.jpg")
+        photo = ImageTk.PhotoImage(image)
+        self.image_panel = Label(self.root, image = photo, width=600, height=400)
+        self.image_panel.image = photo
+        self.image_panel.grid(row=5) 
+
+        self.log_ui_msg("=== INFO: Screen Class Initialized === ", False)
 
     def video_capture_thread(self):
         """
@@ -294,9 +311,9 @@ class TelloControlUI:
 
             if self.is_flying == False: #cant move the drone if not flying
                 return
-
+    
             if self.last_move != None:
-                if (datetime.datetime.now() - self.last_move).seconds < 3:
+                if (datetime.datetime.now() - self.last_move).seconds < 5:
                     return
 
             # print('[Check Moving]: Trying to move if person is there at', datetime.datetime.now())
@@ -310,24 +327,23 @@ class TelloControlUI:
             df_persons_xywh = df_xywh[(df_xywh['class'].isin(interested_class)) & (df_xywh['confidence'] > self.detection_threshold)]
             
             if not df_persons_xywh.empty:
-
-                print('[Identified Person]: Identified a person', datetime.datetime.now())
+                self.log_ui_msg('[Identified Person]: Identified a person at {}'.format(datetime.datetime.now()))                
                 
                 if df_persons_xywh['xcenter'][person_idx] > img_xcenter:
-                    print('[Moving]: Right by rotating clockwise 30', datetime.datetime.now())
+                    self.log_ui_msg(' [Moving]: Right by rotating clockwise 30', False)
                     self.tello.rotate_clockwise(30)
                     self.last_move = datetime.datetime.now()
                     #self.tello.move_right(50)
                 elif df_persons_xywh['xcenter'][person_idx] < img_xcenter:
-                    print('[Moving]: Left by rotating counter clockwise 30', datetime.datetime.now())
+                    self.log_ui_msg(' [Moving]: Left by rotating counter clockwise 30', False)
                     self.tello.rotate_counter_clockwise(30)
                     self.last_move = datetime.datetime.now()
                 elif df_persons_xywh['ycenter'][person_idx] > img_ycenter:
-                    print('[Moving]: Move up', datetime.datetime.now())
+                    self.log_ui_msg(' [Moving]: Move up', False)
                     self.tello.move_up(50)
                     self.last_move = datetime.datetime.now()
                 elif df_persons_xywh['ycenter'][person_idx] < img_ycenter:
-                    print('[Moving]: Move Down', datetime.datetime.now())
+                    self.log_ui_msg(' [Moving]: Move Down', False)
                     self.tello.move_down(50)
                     self.last_move = datetime.datetime.now()
         except Exception as e:

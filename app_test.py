@@ -21,18 +21,18 @@ def main():
 
     f = "img1.jpg"
     torch.hub.download_url_to_file('https://ultralytics.com/images/zidane.jpg', f)  # download 2 images
-    #torch.hub.download_url_to_file('https://pjreddie.com/media/image/Screen_Shot_2018-03-24_at_10.48.42_PM.png', f)  # download 2 images
+    # #torch.hub.download_url_to_file('https://pjreddie.com/media/image/Screen_Shot_2018-03-24_at_10.48.42_PM.png', f)  # download 2 images
     im1 = Image.open('img1.jpg')  # PIL image
 
-    detector = AzureObjectDetector()
+    # detector = AzureObjectDetector()
 
-    bounding_boxes = detector.detect_people(im1)
+    # bounding_boxes = detector.detect_people(im1)
 
-    img2 = Image.fromarray(detector.draw_bounding_boxes( np.array(im1), bounding_boxes))
+    # img2 = Image.fromarray(detector.draw_bounding_boxes( np.array(im1), bounding_boxes))
 
-    img2.show()
+    # img2.show()
 
-    return 
+    # return 
 
     #Initialize Object Detector
     detector = YOLOObjectDetector()
@@ -46,6 +46,7 @@ def main():
     df_xywh = boundings.pandas().xywh[0]
     df_persons_xywh = df_xywh[(df_xywh['class'].isin(interested_class)) & (df_xywh['confidence'] > detection_threshold)]
     
+    print(df_persons_xywh)
     print(boundings.pandas().imgs[0].shape)
     print(boundings.pandas().xyxy[0])
 
