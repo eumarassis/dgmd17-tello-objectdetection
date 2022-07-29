@@ -19,7 +19,7 @@ class DepthPerceptionObjectDetector (ObjectDetector):
     def __init__(self):
 
         self.object_detection_model = YOLOObjectDetector()
-        self.model = manydepth(intrinsics_json_path="C:\\Users\\eassis\\OneDrive - Microsoft\\Desktop\\TECHNICAL\\manydepth\\assets\\test_sequence_intrinsics.json")
+        self.model = manydepth(intrinsics_json_path="assets\\test_sequence_intrinsics.json")
 
     def detect_people (self, image: Image,  previous_image : Image = None) -> np.ndarray:
         """Detect people and return bounding boxes of all people in the given image"""
