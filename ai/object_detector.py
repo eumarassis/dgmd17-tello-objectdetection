@@ -8,6 +8,8 @@ from PIL import Image
 class ObjectDetector:
     """Base Object Detector Class"""
 
+    model_name = None
+
     def __init__(self):
         pass
 

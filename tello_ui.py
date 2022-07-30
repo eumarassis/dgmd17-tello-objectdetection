@@ -16,6 +16,7 @@ import platform
 
 import numpy as np
 from typing import List, Set, Dict, Tuple, Optional
+from ai.depth_perception import DepthPerceptionObjectDetector
 from ai.object_detector import ObjectDetector
 
 class TelloControlUI:
@@ -52,6 +53,11 @@ class TelloControlUI:
         self.detection_threshold = 0.8
         self.last_move = None
         self.last_frame = None
+        # dept perception model
+        # taotal intensity to back
+        self.move_back_threshold = 270000000
+        # taotal intensity to front
+        self.move_front_threshold = 200000000
 
         #Subscribe to Window Close Event
         self.root.wm_protocol("WM_DELETE_WINDOW", self.on_close)
@@ -301,7 +307,7 @@ class TelloControlUI:
                     time.sleep(0.03)
                 
                 #Initialize Thread to Move Drone To keep people at the center
-                thread_movement = threading.Thread(target=self.move_drone_thread,args=(detected_people,))
+                thread_movement = threading.Thread(target=self.move_drone_thread,args=(detected_people,image))
                 thread_movement.start()
 
                 
@@ -311,7 +317,7 @@ class TelloControlUI:
             raise
 
 
-    def move_drone_thread(self, detected_people):
+    def move_drone_thread(self, detected_people, depth_image):
 
         try:
 
@@ -324,34 +330,51 @@ class TelloControlUI:
 
             # print('[Check Moving]: Trying to move if person is there at', datetime.datetime.now())
 
-            person_idx = 0
-            interested_class = [0]
-            img_shape = detected_people.pandas().imgs[0].shape
-            img_xcenter = img_shape[1]/2
-            img_ycenter = img_shape[0]/2
-            df_xywh = detected_people.pandas().xywh[0]
-            df_persons_xywh = df_xywh[(df_xywh['class'].isin(interested_class)) & (df_xywh['confidence'] > self.detection_threshold)]
-            
-            if not df_persons_xywh.empty:
-                self.log_ui_msg('[Identified Person]: Identified a person at {}'.format(datetime.datetime.now()))                
+            if self.object_detector.model_name != None and self.object_detector.model_name == 'depth_perception':
+                depth_array = np.array(depth_image)
+                total_intensity = np.sum(np.sum(np.sum(depth_array, axis = 2),axis =0))
+                if total_intensity > self.move_back_threshold:
+                    print(' [Moving]: Back by 20cm the intensity is: {0}'.format(total_intensity))
+                    self.log_ui_msg(' [Moving]: Back by 20cm the intensity is: {0}'.format(total_intensity), True)
+                    self.tello.move_back(20)
+                    # self.tello.move_up(20)
+                    self.last_move = datetime.datetime.now()
+                elif total_intensity < self.move_front_threshold:
+                    print(' [Moving]: Front by 10cm the intensity is: {0}'.format(total_intensity))
+                    self.log_ui_msg(' [Moving]: Front by 10cm the intensity is: {0}'.format(total_intensity), True)
+                    self.tello.move_forward(10)
+                    self.last_move = datetime.datetime.now()
+
+            else:            
+                person_idx = 0
+                interested_class = [0]
+                img_shape = detected_people.pandas().imgs[0].shape
+                img_xcenter = img_shape[1]/2
+                img_ycenter = img_shape[0]/2
+                df_xywh = detected_people.pandas().xywh[0]
+                df_persons_xywh = df_xywh[(df_xywh['class'].isin(interested_class)) & (df_xywh['confidence'] > self.detection_threshold)]
                 
-                if df_persons_xywh['xcenter'][person_idx] > img_xcenter:
-                    self.log_ui_msg(' [Moving]: Right by rotating clockwise 30', False)
-                    self.tello.rotate_clockwise(30)
-                    self.last_move = datetime.datetime.now()
-                    #self.tello.move_right(50)
-                elif df_persons_xywh['xcenter'][person_idx] < img_xcenter:
-                    self.log_ui_msg(' [Moving]: Left by rotating counter clockwise 30', False)
-                    self.tello.rotate_counter_clockwise(30)
-                    self.last_move = datetime.datetime.now()
-                elif df_persons_xywh['ycenter'][person_idx] > img_ycenter:
-                    self.log_ui_msg(' [Moving]: Move up', False)
-                    self.tello.move_up(50)
-                    self.last_move = datetime.datetime.now()
-                elif df_persons_xywh['ycenter'][person_idx] < img_ycenter:
-                    self.log_ui_msg(' [Moving]: Move Down', False)
-                    self.tello.move_down(50)
-                    self.last_move = datetime.datetime.now()
+                if not df_persons_xywh.empty:
+                    self.log_ui_msg('[Identified Person]: Identified a person at {}'.format(datetime.datetime.now()))                
+                    
+                    if df_persons_xywh['xcenter'][person_idx] > img_xcenter:
+                        self.log_ui_msg(' [Moving]: Right by rotating clockwise 30', False)
+                        self.tello.rotate_clockwise(30)
+                        self.last_move = datetime.datetime.now()
+                        #self.tello.move_right(50)
+                    elif df_persons_xywh['xcenter'][person_idx] < img_xcenter:
+                        self.log_ui_msg(' [Moving]: Left by rotating counter clockwise 30', False)
+                        self.tello.rotate_counter_clockwise(30)
+                        self.last_move = datetime.datetime.now()
+                    elif df_persons_xywh['ycenter'][person_idx] > img_ycenter:
+                        self.log_ui_msg(' [Moving]: Move up', False)
+                        self.tello.move_up(50)
+                        self.last_move = datetime.datetime.now()
+                    elif df_persons_xywh['ycenter'][person_idx] < img_ycenter:
+                        self.log_ui_msg(' [Moving]: Move Down', False)
+                        self.tello.move_down(50)
+                        self.last_move = datetime.datetime.now()
+                        
         except Exception as e:
             print("[Error]:", e)                    
 

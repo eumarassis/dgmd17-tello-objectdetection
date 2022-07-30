@@ -18,6 +18,7 @@ class DepthPerceptionObjectDetector (ObjectDetector):
 
     def __init__(self):
 
+        self.model_name = 'depth_perception'
         self.object_detection_model = YOLOObjectDetector()
         self.model = manydepth(intrinsics_json_path="assets\\test_sequence_intrinsics.json")
 
