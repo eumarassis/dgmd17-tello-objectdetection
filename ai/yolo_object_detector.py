@@ -14,7 +14,9 @@ class YOLOObjectDetector (ObjectDetector):
 
     def detect_people (self, image: Image,  previous_image : Image = None) -> np.ndarray:
         """Detect people and return bounding boxes of all people in the given image"""
-        return self.model(image)
+        results = self.model(image)
+        
+        return results
 
 
     def measure_distance (self, image: Image, bounding_boxes: np.ndarray)-> np.ndarray:

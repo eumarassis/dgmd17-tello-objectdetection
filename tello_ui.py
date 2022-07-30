@@ -17,6 +17,8 @@ import platform
 import numpy as np
 from typing import List, Set, Dict, Tuple, Optional
 from ai.object_detector import ObjectDetector
+from ai.yolo_face_detector import YOLOFaceDetector
+from ai.yolo_object_detector import YOLOObjectDetector
 
 class TelloControlUI:
     """Tello Control User Interface Class"""
@@ -301,7 +303,7 @@ class TelloControlUI:
                     time.sleep(0.03)
                 
                 #Initialize Thread to Move Drone To keep people at the center
-                thread_movement = threading.Thread(target=self.move_drone_thread,args=(detected_people,))
+                thread_movement = threading.Thread(target=self.move_drone_thread,args=(detected_people,image))
                 thread_movement.start()
 
                 
@@ -311,12 +313,12 @@ class TelloControlUI:
             raise
 
 
-    def move_drone_thread(self, detected_people):
+    def move_drone_thread(self, detected_people, image):
 
         try:
 
-            if self.is_flying == False: #cant move the drone if not flying
-                return
+            #if self.is_flying == False: #cant move the drone if not flying
+            #    return
     
             if self.last_move != None:
                 if (datetime.datetime.now() - self.last_move).seconds < 5:
@@ -324,34 +326,71 @@ class TelloControlUI:
 
             # print('[Check Moving]: Trying to move if person is there at', datetime.datetime.now())
 
-            person_idx = 0
-            interested_class = [0]
-            img_shape = detected_people.pandas().imgs[0].shape
-            img_xcenter = img_shape[1]/2
-            img_ycenter = img_shape[0]/2
-            df_xywh = detected_people.pandas().xywh[0]
-            df_persons_xywh = df_xywh[(df_xywh['class'].isin(interested_class)) & (df_xywh['confidence'] > self.detection_threshold)]
-            
-            if not df_persons_xywh.empty:
-                self.log_ui_msg('[Identified Person]: Identified a person at {}'.format(datetime.datetime.now()))                
+            if isinstance(self.object_detector, YOLOObjectDetector):
+                person_idx = 0
+                interested_class = [0]
+                img_shape = detected_people.pandas().imgs[0].shape
+                img_xcenter = img_shape[1]/2
+                img_ycenter = img_shape[0]/2
+                df_xywh = detected_people.pandas().xywh[0]
+                df_persons_xywh = df_xywh[(df_xywh['class'].isin(interested_class)) & (df_xywh['confidence'] > self.detection_threshold)]
                 
-                if df_persons_xywh['xcenter'][person_idx] > img_xcenter:
-                    self.log_ui_msg(' [Moving]: Right by rotating clockwise 30', False)
-                    self.tello.rotate_clockwise(30)
-                    self.last_move = datetime.datetime.now()
-                    #self.tello.move_right(50)
-                elif df_persons_xywh['xcenter'][person_idx] < img_xcenter:
-                    self.log_ui_msg(' [Moving]: Left by rotating counter clockwise 30', False)
-                    self.tello.rotate_counter_clockwise(30)
-                    self.last_move = datetime.datetime.now()
-                elif df_persons_xywh['ycenter'][person_idx] > img_ycenter:
-                    self.log_ui_msg(' [Moving]: Move up', False)
-                    self.tello.move_up(50)
-                    self.last_move = datetime.datetime.now()
-                elif df_persons_xywh['ycenter'][person_idx] < img_ycenter:
-                    self.log_ui_msg(' [Moving]: Move Down', False)
-                    self.tello.move_down(50)
-                    self.last_move = datetime.datetime.now()
+                if not df_persons_xywh.empty:
+                    self.log_ui_msg('[Identified Person]: Identified a person at {}'.format(datetime.datetime.now()))                
+                    
+                    if df_persons_xywh['xcenter'][person_idx] > img_xcenter:
+                        self.log_ui_msg(' [Moving]: Right by rotating clockwise 30', False)
+                        self.tello.rotate_clockwise(30)
+                        self.last_move = datetime.datetime.now()
+                        #self.tello.move_right(50)
+                    elif df_persons_xywh['xcenter'][person_idx] < img_xcenter:
+                        self.log_ui_msg(' [Moving]: Left by rotating counter clockwise 30', False)
+                        self.tello.rotate_counter_clockwise(30)
+                        self.last_move = datetime.datetime.now()
+                    elif df_persons_xywh['ycenter'][person_idx] > img_ycenter:
+                        self.log_ui_msg(' [Moving]: Move up', False)
+                        self.tello.move_up(50)
+                        self.last_move = datetime.datetime.now()
+                    elif df_persons_xywh['ycenter'][person_idx] < img_ycenter:
+                        self.log_ui_msg(' [Moving]: Move Down', False)
+                        self.tello.move_down(50)
+                        self.last_move = datetime.datetime.now()
+            elif isinstance(self.object_detector, YOLOFaceDetector):
+
+                img_xcenter = image.width/2
+                img_ycenter = image.height/2
+
+                #Find faces that meet the confidence level
+                faces_filtered_threshold = [ x[0] for x in detected_people if x[1] > self.detection_threshold ]
+                
+                if len(faces_filtered_threshold) > 0:
+                    self.log_ui_msg('[Identified Face]: Identified a person at {}'.format(datetime.datetime.now()))                
+
+                    #Tuple Structure = x,y,w,h                    
+                    face_tuple = faces_filtered_threshold[0]
+
+                    xcenter = face_tuple[0] / 2
+                    ycenter = face_tuple[1] / 2
+
+                    if  xcenter > img_xcenter:
+                        self.log_ui_msg(' [Moving]: Right by rotating clockwise 30', False)
+                        self.tello.rotate_clockwise(30)
+                        self.last_move = datetime.datetime.now()
+                        #self.tello.move_right(50)
+                    elif xcenter < img_xcenter:
+                        self.log_ui_msg(' [Moving]: Left by rotating counter clockwise 30', False)
+                        self.tello.rotate_counter_clockwise(30)
+                        self.last_move = datetime.datetime.now()
+                    elif ycenter > img_ycenter:
+                        self.log_ui_msg(' [Moving]: Move up', False)
+                        self.tello.move_up(50)
+                        self.last_move = datetime.datetime.now()
+                    elif ycenter < img_ycenter:
+                        self.log_ui_msg(' [Moving]: Move Down', False)
+                        self.tello.move_down(50)
+                        self.last_move = datetime.datetime.now()
+
+
         except Exception as e:
             print("[Error]:", e)                    
 
