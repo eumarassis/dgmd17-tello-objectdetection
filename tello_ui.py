@@ -18,6 +18,8 @@ import numpy as np
 from typing import List, Set, Dict, Tuple, Optional
 from ai.depth_perception import DepthPerceptionObjectDetector
 from ai.object_detector import ObjectDetector
+from ai.yolo_face_detector import YOLOFaceDetector
+from ai.yolo_object_detector import YOLOObjectDetector
 
 class TelloControlUI:
     """Tello Control User Interface Class"""
@@ -317,21 +319,20 @@ class TelloControlUI:
             raise
 
 
-    def move_drone_thread(self, detected_people, depth_image):
+    def move_drone_thread(self, detected_people, image):
 
         try:
 
             if self.is_flying == False: #cant move the drone if not flying
-                return
+               return
     
             if self.last_move != None:
                 if (datetime.datetime.now() - self.last_move).seconds < 5:
                     return
 
             # print('[Check Moving]: Trying to move if person is there at', datetime.datetime.now())
-
             if self.object_detector.model_name != None and self.object_detector.model_name == 'depth_perception':
-                depth_array = np.array(depth_image)
+                depth_array = np.array(image)
                 total_intensity = np.sum(np.sum(np.sum(depth_array, axis = 2),axis =0))
                 if total_intensity > self.move_back_threshold:
                     print(' [Moving]: Back by 20cm the intensity is: {0}'.format(total_intensity))
@@ -345,7 +346,7 @@ class TelloControlUI:
                     self.tello.move_forward(10)
                     self.last_move = datetime.datetime.now()
 
-            else:            
+            elif isinstance(self.object_detector, YOLOObjectDetector):
                 person_idx = 0
                 interested_class = [0]
                 img_shape = detected_people.pandas().imgs[0].shape
@@ -375,8 +376,44 @@ class TelloControlUI:
                         self.tello.move_down(50)
                         self.last_move = datetime.datetime.now()
                         
+            elif isinstance(self.object_detector, YOLOFaceDetector):
+
+                img_xcenter = image.width/2
+                img_ycenter = image.height/2
+
+                #Find faces that meet the confidence level
+                faces_filtered_threshold = [ x[0] for x in detected_people if x[1] > self.detection_threshold ]
+                
+                if len(faces_filtered_threshold) > 0:
+                    self.log_ui_msg('[Identified Face]: Identified a person at {}'.format(datetime.datetime.now()))                
+
+                    #Tuple Structure = x,y,w,h                    
+                    face_tuple = faces_filtered_threshold[0]
+
+                    xcenter = face_tuple[0] / 2
+                    ycenter = face_tuple[1] / 2
+
+                    if  xcenter > img_xcenter:
+                        self.log_ui_msg(' [Moving]: Right by rotating clockwise 30', False)
+                        self.tello.rotate_clockwise(30)
+                        self.last_move = datetime.datetime.now()
+                        #self.tello.move_right(50)
+                    elif xcenter < img_xcenter:
+                        self.log_ui_msg(' [Moving]: Left by rotating counter clockwise 30', False)
+                        self.tello.rotate_counter_clockwise(30)
+                        self.last_move = datetime.datetime.now()
+                    elif ycenter > img_ycenter:
+                        self.log_ui_msg(' [Moving]: Move up', False)
+                        self.tello.move_up(50)
+                        self.last_move = datetime.datetime.now()
+                    elif ycenter < img_ycenter:
+                        self.log_ui_msg(' [Moving]: Move Down', False)
+                        self.tello.move_down(50)
+                        self.last_move = datetime.datetime.now()
+
         except Exception as e:
             print("[Error]:", e)                    
+
 
     def update_GUI_image(self, image):
         """
@@ -389,6 +426,7 @@ class TelloControlUI:
             self.image_panel.grid(row=5) 
         except:
             print("[INFO] Error updating frame.")
+
 
     def on_close(self):
         """
