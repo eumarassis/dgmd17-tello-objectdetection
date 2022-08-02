@@ -13,9 +13,12 @@ import cv2
 import os
 import time
 import platform
-
+import csv
 import numpy as np
 from typing import List, Set, Dict, Tuple, Optional
+
+from torch import initial_seed
+from ai.azure_object_detector import AzureObjectDetector
 from ai.depth_perception import DepthPerceptionObjectDetector
 from ai.object_detector import ObjectDetector
 from ai.yolo_face_detector import YOLOFaceDetector
@@ -64,6 +67,13 @@ class TelloControlUI:
         #Subscribe to Window Close Event
         self.root.wm_protocol("WM_DELETE_WINDOW", self.on_close)
 
+        self.log_combined_model_telemetry = False
+
+        #Create Logging file
+        self.telemetry_file = open('assets/telemetry.csv', 'a', newline='')
+
+        self.telemetry_writer = csv.writer(self.telemetry_file)
+
     
     def connect_handler (self):
         """Handle click to Connect. Connect to Tello Using Tello API."""
@@ -77,7 +87,7 @@ class TelloControlUI:
 
         self.is_connected = True
 
-        self.btn_connect['state'] = "disabled"
+        #self.btn_connect['state'] = "disabled"
         self.btn_takeoff['state'] = "normal"
         self.btn_land['state'] = "normal"
         self.btn_streamon['state'] = "normal"
@@ -207,6 +217,8 @@ class TelloControlUI:
         """Log message in the UI"""
         self.text_log.insert('1.0', message + "\n" if new_line == True else message )
 
+    def handle_telemetry_checkbox(self):
+        self.log_combined_model_telemetry = True if self.chk_telemetry.get() == 1 else False
 
     def build_ui(self):
         """Build drone control UI using tkinter objects."""        
@@ -258,7 +270,10 @@ class TelloControlUI:
         variable = StringVar(self.root)
         variable.set(OPTIONS[0]) # default value
 
-        self.opt_menu_detector = OptionMenu(self.root, variable, *OPTIONS, command=self.update_detector).grid(row=3) 
+        OptionMenu(self.frm, variable, *OPTIONS, command=self.update_detector).grid(row=3, column=2)
+
+        self.chk_telemetry = IntVar()
+        ttk.Checkbutton(self.frm, text='Log Combined Model Telemetry',variable=self.chk_telemetry, onvalue=1, offvalue=0, command=self.handle_telemetry_checkbox).grid(row=3, column=4) 
 
         #Create Logging Section
         self.text_log = ScrolledText(self.root, width=80,  height=3)
@@ -294,6 +309,9 @@ class TelloControlUI:
                     self.last_frame = image
 
 
+                #Capture Telemetry
+                self.log_all_models_telemetry(image, previous_image=self.last_frame)
+
                 #Call Object Detector Class
                 detected_people = self.object_detector.detect_people(image, previous_image=self.last_frame) 
 
@@ -318,6 +336,80 @@ class TelloControlUI:
             print("[INFO] RuntimeError on i")
             raise
 
+    def log_all_models_telemetry(self, image, previous_image):
+        """
+        Log Model Telemetry and Comparison to CSV File
+        Save one row for each model output with the following schema:
+        log timestamp, model name, confidence, img xcenter, img ycenter, model output xcenter, model output ycenter, height (distance to floor), is drone flying
+        """
+        try:
+
+            if self.log_combined_model_telemetry == False:
+                return
+                
+            log_time = datetime.datetime.now()
+            logs = list()
+            img_xcenter = image.width/2
+            img_ycenter = image.height/2
+            height = self.tello.get_height()
+
+
+            for item in self.list_object_detector:
+                model = item[1]
+
+                result = model.detect_people(image, previous_image=self.last_frame)
+
+
+                if isinstance(model, DepthPerceptionObjectDetector):
+
+                    depth_image = model.draw_bounding_boxes(image=image, bounding_boxes= result, previous_image=previous_image)
+                    depth_array = np.array(depth_image)
+                    total_intensity = np.sum(np.sum(np.sum(depth_array, axis = 2),axis =0))
+
+                    logs.append([log_time, "DepthPerceptionObjectDetector", total_intensity, img_xcenter, img_ycenter, np.nan, np.nan, height, self.is_flying ])
+
+                elif isinstance(model, YOLOObjectDetector):
+                   
+                    interested_class = [0]
+                    
+                    df_xywh = result.pandas().xywh[0]
+                    df_persons_xywh = df_xywh[(df_xywh['class'].isin(interested_class)) & (df_xywh['confidence'] > self.detection_threshold)]
+
+                    xcenter = df_persons_xywh['xcenter'][0] if df_persons_xywh['xcenter'].empty == False else np.nan
+                    ycenter = df_persons_xywh['ycenter'][0] if df_persons_xywh['ycenter'].empty == False else np.nan
+                    confidence =df_persons_xywh['confidence'][0] if df_persons_xywh['confidence'].empty == False else np.nan
+                    
+                    logs.append([log_time,"YOLOObjectDetector", confidence, img_xcenter, img_ycenter, xcenter, ycenter, height, self.is_flying ])
+                            
+                elif isinstance(model, YOLOFaceDetector):
+
+                    xcenter = np.nan
+                    ycenter = np.nan
+                    confidence = np.nan
+                    
+                    if len(result) > 0:
+                        xcenter = result[0][0][0] / 2
+                        ycenter = result[0][0][1] / 2
+                        confidence = result[0][1]
+                    
+                    logs.append([log_time,"YOLOFaceDetector", confidence, img_xcenter, img_ycenter, xcenter, ycenter, height, self.is_flying ])
+
+                elif isinstance(model, AzureObjectDetector):
+
+                    xcenter = np.nan
+                    ycenter = np.nan
+                    confidence = np.nan
+                    
+                    if len(result) > 0:
+                        xcenter = result[0][0].x / 2
+                        ycenter = result[0][0].y / 2
+                        confidence = result[0][1]
+                    
+                    logs.append([log_time,"AzureObjectDetector", confidence, img_xcenter, img_ycenter, xcenter, ycenter, height, self.is_flying ])
+
+            self.telemetry_writer.writerows(logs)
+        except Exception as e:
+            print("[Error logging telemetry]:", e)                  
 
     def move_drone_thread(self, detected_people, image):
 
@@ -331,7 +423,7 @@ class TelloControlUI:
                     return
 
             # print('[Check Moving]: Trying to move if person is there at', datetime.datetime.now())
-            if self.object_detector.model_name != None and self.object_detector.model_name == 'depth_perception':
+            if isinstance(self.object_detector, DepthPerceptionObjectDetector):
                 depth_array = np.array(image)
                 total_intensity = np.sum(np.sum(np.sum(depth_array, axis = 2),axis =0))
                 if total_intensity > self.move_back_threshold:
@@ -411,6 +503,40 @@ class TelloControlUI:
                         self.tello.move_down(50)
                         self.last_move = datetime.datetime.now()
 
+            elif isinstance(self.object_detector, AzureObjectDetector):
+
+                img_xcenter = image.width/2
+                img_ycenter = image.height/2
+
+                #Find faces that meet the confidence level
+                faces_filtered_threshold = [ x[0] for x in detected_people if x[1] > self.detection_threshold ]
+                
+                if len(faces_filtered_threshold) > 0:
+                    self.log_ui_msg('[Identified Face]: Identified a person at {}'.format(datetime.datetime.now()))                
+
+                    #Tuple Structure = x,y,w,h                    
+                    face_tuple = faces_filtered_threshold[0]
+
+                    xcenter = face_tuple.x / 2
+                    ycenter = face_tuple.y / 2
+
+                    if  xcenter > img_xcenter:
+                        self.log_ui_msg(' [Moving]: Right by rotating clockwise 30', False)
+                        self.tello.rotate_clockwise(30)
+                        self.last_move = datetime.datetime.now()
+                        #self.tello.move_right(50)
+                    elif xcenter < img_xcenter:
+                        self.log_ui_msg(' [Moving]: Left by rotating counter clockwise 30', False)
+                        self.tello.rotate_counter_clockwise(30)
+                        self.last_move = datetime.datetime.now()
+                    elif ycenter > img_ycenter:
+                        self.log_ui_msg(' [Moving]: Move up', False)
+                        self.tello.move_up(50)
+                        self.last_move = datetime.datetime.now()
+                    elif ycenter < img_ycenter:
+                        self.log_ui_msg(' [Moving]: Move Down', False)
+                        self.tello.move_down(50)
+                        self.last_move = datetime.datetime.now()
         except Exception as e:
             print("[Error]:", e)                    
 
@@ -433,6 +559,9 @@ class TelloControlUI:
         Handle GUI Terminating event
         """
         print("[INFO] closing...")
+
+        del self.telemetry_writer
+        del self.telemetry_file
         del self.tello
         del self.object_detector
         self.root.quit()

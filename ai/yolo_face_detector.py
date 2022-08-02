@@ -173,7 +173,7 @@ class YOLOFaceDetector (ObjectDetector):
         
         _,box,conf=self.face_detection(frame_arr=opencv_image,frame_status=True,model='full')
 
-        return np.array(list(zip(box,conf)))
+        return np.array(list(zip(box,conf)), dtype=object)
 
 
     def measure_distance (self, image: Image, bounding_boxes: np.ndarray)-> np.ndarray:

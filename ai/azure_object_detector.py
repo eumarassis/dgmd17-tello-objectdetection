@@ -47,7 +47,7 @@ class AzureObjectDetector (ObjectDetector):
         #Navigate through all objects detected and only select people
         for x in tags_result_remote.objects:
             if x.object_property == 'person':
-                bounding_boxes.append(x.rectangle)
+                bounding_boxes.append((x.rectangle, x.confidence))
 
         #Return bounding boxes numpy array
         return np.array(bounding_boxes)
@@ -63,9 +63,12 @@ class AzureObjectDetector (ObjectDetector):
         try:
             img_array = np.array(image)
 
-            for box in bounding_boxes:
+            for item in bounding_boxes:
+                box = item[0]
+
                 img_array = cv2.rectangle(img_array,(box.x, box.y),(box.x + box.w,box.y + box.h ),color, border )
 
+                img_array = cv2.putText(img_array, "face", (box.x,box.y-10), cv2.FONT_HERSHEY_COMPLEX, fontScale=1, color=color, thickness=1)
             return Image.fromarray(img_array)
         except:
             print ("error drawing boundind boxes. Azure.")
