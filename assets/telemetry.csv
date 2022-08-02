@@ -1,4 +1,4 @@
-log_time,Model, confidence, detected bounding box width, detected bounding box height, img xcenter, img ycenter, model output xcenter,  model output ycenter, height (distance to floor), is_flying
+log_time,Model,confidence,detected bounding box width,detected bounding box height,img xcenter,img ycenter,model output xcenter,model output ycenter,height (distance to floor),is_flying
 2022-08-02 12:17:11.338488,YOLOFaceDetector,0.9073047637939453,166,225,480.0,360.0,279.0,87.0,0,False
 2022-08-02 12:17:20.532976,YOLOObjectDetector,0.6927715539932251,676.3169555664062,555.2459106445312,480.0,360.0,519.07177734375,433.9029235839844,0,False
 2022-08-02 12:17:20.532976,DepthPerception,243017952,nan,nan,480.0,360.0,nan,nan,0,False
