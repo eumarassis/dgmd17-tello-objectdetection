@@ -6,6 +6,7 @@ from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 from turtle import width
 from PIL import ImageTk, Image
+from cv2 import boundingRect
 from djitellopy import Tello
 import threading
 import datetime
@@ -340,7 +341,7 @@ class TelloControlUI:
         """
         Log Model Telemetry and Comparison to CSV File
         Save one row for each model output with the following schema:
-        log timestamp, model name, confidence, img xcenter, img ycenter, model output xcenter, model output ycenter, height (distance to floor), is drone flying
+        log timestamp, model name, confidence, detected bounding box width, detected bounding box height, img xcenter, img ycenter, model output xcenter, model output ycenter, height (distance to floor), is drone flying, img 2d (optional)
         """
         try:
 
@@ -353,61 +354,75 @@ class TelloControlUI:
             img_ycenter = image.height/2
             height = self.tello.get_height()
 
-
             for item in self.list_object_detector:
                 model = item[1]
 
                 result = model.detect_people(image, previous_image=self.last_frame)
 
+                if isinstance(model, YOLOFaceDetector):
 
-                if isinstance(model, DepthPerceptionObjectDetector):
+                    xcenter = np.nan
+                    ycenter = np.nan
+                    confidence = np.nan
+                    bounding_box_width = np.nan
+                    bounding_box_height = np.nan
 
-                    depth_image = model.draw_bounding_boxes(image=image, bounding_boxes= result, previous_image=previous_image)
-                    depth_array = np.array(depth_image)
-                    total_intensity = np.sum(np.sum(np.sum(depth_array, axis = 2),axis =0))
+                    if len(result) > 0:
+                        xcenter = result[0][0][0] / 2
+                        ycenter = result[0][0][1] / 2
+                        bounding_box_height = result[0][0][2]
+                        bounding_box_width = result[0][0][3]                        
+                        confidence = result[0][1]
+                    
+                    #img_2d = list(np.array(image.convert('L')))
 
-                    logs.append([log_time, "DepthPerceptionObjectDetector", total_intensity, img_xcenter, img_ycenter, np.nan, np.nan, height, self.is_flying ])
+                    logs.append([log_time,"YOLOFaceDetector", confidence, bounding_box_width, bounding_box_height, img_xcenter, img_ycenter, xcenter, ycenter, height, self.is_flying ])
+
 
                 elif isinstance(model, YOLOObjectDetector):
                    
                     interested_class = [0]
                     
                     df_xywh = result.pandas().xywh[0]
-                    df_persons_xywh = df_xywh[(df_xywh['class'].isin(interested_class)) & (df_xywh['confidence'] > self.detection_threshold)]
+                    df_persons_xywh = df_xywh[(df_xywh['class'].isin(interested_class)) ]
 
                     xcenter = df_persons_xywh['xcenter'][0] if df_persons_xywh['xcenter'].empty == False else np.nan
                     ycenter = df_persons_xywh['ycenter'][0] if df_persons_xywh['ycenter'].empty == False else np.nan
                     confidence =df_persons_xywh['confidence'][0] if df_persons_xywh['confidence'].empty == False else np.nan
+                    bounding_box_height =df_persons_xywh['height'][0] if df_persons_xywh['height'].empty == False else np.nan
+                    bounding_box_width =df_persons_xywh['width'][0] if df_persons_xywh['width'].empty == False else np.nan
                     
-                    logs.append([log_time,"YOLOObjectDetector", confidence, img_xcenter, img_ycenter, xcenter, ycenter, height, self.is_flying ])
+                    logs.append([log_time,"YOLOObjectDetector", confidence, bounding_box_width, bounding_box_height, img_xcenter, img_ycenter, xcenter, ycenter, height, self.is_flying ])
                             
-                elif isinstance(model, YOLOFaceDetector):
+                elif isinstance(model, DepthPerceptionObjectDetector):
 
-                    xcenter = np.nan
-                    ycenter = np.nan
-                    confidence = np.nan
-                    
-                    if len(result) > 0:
-                        xcenter = result[0][0][0] / 2
-                        ycenter = result[0][0][1] / 2
-                        confidence = result[0][1]
-                    
-                    logs.append([log_time,"YOLOFaceDetector", confidence, img_xcenter, img_ycenter, xcenter, ycenter, height, self.is_flying ])
+                    depth_image = model.draw_bounding_boxes(image=image, bounding_boxes= result, previous_image=previous_image)
+                    depth_array = np.array(depth_image)
+                    total_intensity = np.sum(np.sum(np.sum(depth_array, axis = 2),axis =0))
 
+                    logs.append([log_time, "DepthPerception", total_intensity, np.nan, np.nan, img_xcenter, img_ycenter, np.nan, np.nan, height, self.is_flying ])
+             
                 elif isinstance(model, AzureObjectDetector):
 
                     xcenter = np.nan
                     ycenter = np.nan
                     confidence = np.nan
-                    
+                    bounding_box_height = np.nan
+                    bounding_box_width = np.nan 
+
                     if len(result) > 0:
                         xcenter = result[0][0].x / 2
                         ycenter = result[0][0].y / 2
+                        bounding_box_height = result[0][0].h
+                        bounding_box_width = result[0][0].w
+                                               
                         confidence = result[0][1]
                     
-                    logs.append([log_time,"AzureObjectDetector", confidence, img_xcenter, img_ycenter, xcenter, ycenter, height, self.is_flying ])
+                    logs.append([log_time,"AzureObjectDetector", confidence, bounding_box_width, bounding_box_height, img_xcenter, img_ycenter, xcenter, ycenter, height, self.is_flying ])
+
 
             self.telemetry_writer.writerows(logs)
+            self.telemetry_file.flush()
         except Exception as e:
             print("[Error logging telemetry]:", e)                  
 
@@ -560,6 +575,7 @@ class TelloControlUI:
         """
         print("[INFO] closing...")
 
+        self.telemetry_file.close()
         del self.telemetry_writer
         del self.telemetry_file
         del self.tello
