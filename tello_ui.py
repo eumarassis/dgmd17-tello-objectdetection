@@ -71,17 +71,14 @@ class TelloControlUI:
         self.log_combined_model_telemetry = False
 
         #Create Logging file
-        self.telemetry_file = open('assets/telemetry.csv', 'a', newline='')
+        self.telemetry_file = open('assets/telemetry_v2.csv', 'a', newline='')
 
         self.telemetry_writer = csv.writer(self.telemetry_file)
 
     
     def connect_handler (self):
         """Handle click to Connect. Connect to Tello Using Tello API."""
-        
-        if self.is_connected == True:
-            return
-            
+                  
         self.tello.connect()
 
         self.log_ui_msg("Connected successfully. Battery: {}%".format( self.tello.get_battery()))
@@ -354,6 +351,11 @@ class TelloControlUI:
             img_ycenter = image.height/2
             height = self.tello.get_height()
 
+            face_bounding_box_x = 0
+            face_bounding_box_y = 0
+            face_bounding_box_height = 0
+            face_bounding_box_width = 0
+
             for item in self.list_object_detector:
                 model = item[1]
 
@@ -373,6 +375,11 @@ class TelloControlUI:
                         bounding_box_height = result[0][0][2]
                         bounding_box_width = result[0][0][3]                        
                         confidence = result[0][1]
+
+                        face_bounding_box_x = result[0][0][0]
+                        face_bounding_box_y = result[0][0][1] 
+                        face_bounding_box_height = bounding_box_height
+                        face_bounding_box_width = bounding_box_width
                     
                     #img_2d = list(np.array(image.convert('L')))
 
@@ -398,7 +405,14 @@ class TelloControlUI:
 
                     depth_image = model.draw_bounding_boxes(image=image, bounding_boxes= result, previous_image=previous_image)
                     depth_array = np.array(depth_image)
-                    total_intensity = np.sum(np.sum(np.sum(depth_array, axis = 2),axis =0))
+                    sliced_img = None
+                    try:
+                        sliced_img = depth_array[face_bounding_box_y:face_bounding_box_y + face_bounding_box_height, face_bounding_box_x:face_bounding_box_x + face_bounding_box_width, :]
+                    except Exception as e:
+                        sliced_img = depth_array
+                        print("[Error slicing array]:", e)     
+                    
+                    total_intensity = np.sum(np.sum(np.sum(sliced_img, axis = 2),axis =0))
 
                     logs.append([log_time, "DepthPerception", total_intensity, np.nan, np.nan, img_xcenter, img_ycenter, np.nan, np.nan, height, self.is_flying ])
              
