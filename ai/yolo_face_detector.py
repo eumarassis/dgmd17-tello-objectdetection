@@ -11,7 +11,7 @@ from PIL import Image
 import cv2
 import time
 import os
-import gdown
+# import gdown
 from IPython.display import display
 
 
