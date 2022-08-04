@@ -55,6 +55,5 @@ File | Description
 -- /depth_perception.py   | Depth Perception class using manydepth library
 ./assets folder   | Contains custom weights for YOLO face detection and holds model telemetry data
 ./EDA   | Python Notebooks for Exploratory Data Analysis
--- /model_analytics.ipynb   | Python Notebook for Exploratory Data Analysis by Ryan
 -- /ProjectEDA.ipynb   | Python Notebook for Exploratory Data Analysis by Eumar and Muthu
 ./requirements.txt | Contains list of required python libraries
