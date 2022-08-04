@@ -60,6 +60,6 @@ File | Description
 [yolo_face_detector.py](./ai/yolo_face_detector.py)   | YOLO face detector class using custom weights
 [yolo_object_detector.py](./ai/yolo_object_detector.py)   | YOLO object detector class using the ultralytics/yolov5 library
 [depth_perception.py](./ai/depth_perception.py)   | Depth Perception class using manydepth library
-telemetry data
-[ProjectEDA.ipynb](./Eda/ProjectEDA.ipynb)   | Python Notebook for Exploratory Data Analysis by Eumar and Muthu
+[telemetry data](./assets/telemetry_v2.csv) | Telemetry data logged from all the models to do the analysis
+[ProjectEDA.ipynb](./EDA/ProjectEDA.ipynb)   | Python Notebook for Exploratory Data Analysis by Eumar and Muthu
 [requirements.txt](./requirements.txt) | Contains list of required python libraries
