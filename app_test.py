@@ -47,7 +47,7 @@ def main():
         model_name = detector.__module__.split('.')[1]
         detected_people = detector.detect_people(im1)
         image = detector.draw_bounding_boxes(im1, detected_people, previous_image=im1)
-        image.save('output/' + model_name + '_' + filename + '.jpg')
+        image.save('test_output/' + model_name + '_' + filename + '.jpg')
 
         if model_name == 'yolo_object_detector':
             interested_class = [0]
