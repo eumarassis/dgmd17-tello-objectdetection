@@ -5,7 +5,7 @@ from typing import List, Dict, Tuple, Optional
 from ai.object_detector import ObjectDetector
 import torch
 from PIL import Image
-
+import os
 import torch
 from PIL import Image
 import cv2
@@ -20,7 +20,7 @@ class DepthPerceptionObjectDetector (ObjectDetector):
 
         self.model_name = 'depth_perception'
         self.object_detection_model = YOLOObjectDetector()
-        self.model = manydepth(intrinsics_json_path="assets\\test_sequence_intrinsics.json")
+        self.model = manydepth(intrinsics_json_path=os.path.join("assets", "test_sequence_intrinsics.json"))
 
     def detect_people (self, image: Image,  previous_image : Image = None) -> np.ndarray:
         """Detect people and return bounding boxes of all people in the given image"""
