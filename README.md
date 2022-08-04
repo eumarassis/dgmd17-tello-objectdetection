@@ -39,8 +39,11 @@ The app will be launched even if a drone is not connected to the WIFI.
 
 6. Checkout the APP demo in YouTube, to learn how to use the models,view models outputs and navigate the drone
 <p align="center">
-  <img href="https://www.youtube.com/watch?v=LKzUzrd4MzM" src="https://img.youtube.com/vi/LKzUzrd4MzM/0.jpg" alt="Tello Drone App Demo" width="400" />
+  <a href="https://www.youtube.com/watch?v=LKzUzrd4MzM">
+        <img src="https://img.youtube.com/vi/LKzUzrd4MzM/0.jpg" alt="Tello Drone App Demo" width="400" />
+  </a>
 </p>
+<!-- [![Tello Drone App](https://img.youtube.com/vi/LKzUzrd4MzM/0.jpg)](https://www.youtube.com/watch?v=LKzUzrd4MzM) -->
 
 
 ## Project Structure
