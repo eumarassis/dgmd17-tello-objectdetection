@@ -32,15 +32,15 @@ The app will be launched even if a drone is not connected to the WIFI.
         ```
    - We have inluded sample image for the models, you can change the images with people in here
    - The models output will be saved to output dir
-
-#### Model Output location
+   - Model Output images are stored in `test_output` folder
 <p align="center">
   <img src="test_output/test_output.png" alt="Model outputs saved here" width="400" />
 </p>
 
-6. APP Demo to use the models,see outputs and navigate the drone
-
-[![Tello Drone App](https://img.youtube.com/vi/LKzUzrd4MzM/0.jpg)](https://www.youtube.com/watch?v=LKzUzrd4MzM)
+6. Checkout the APP demo in YouTube, to learn how to use the models,view models outputs and navigate the drone
+<p align="center">
+  <img href="https://www.youtube.com/watch?v=LKzUzrd4MzM" src="https://img.youtube.com/vi/LKzUzrd4MzM/0.jpg" alt="Tello Drone App Demo" width="400" />
+</p>
 
 
 ## Project Structure
