@@ -2,17 +2,21 @@
 .vscode/
 .idea/
 
+
 # Vagrant
 .vagrant/
 
 # Mac/OSX
 .DS_Store
 
+#Test and YOLO
 bus.jpg
 zidane.jpg
 img1.jpg
 # test app output
 output/*
+yolov5s.pt
+
 
 # Windows
 Thumbs.db
