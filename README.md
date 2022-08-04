@@ -7,15 +7,22 @@ The app will be launched even if a drone is not connected to the WIFI.
 
  1. Clone the repo locally
 
- 2. Create a [Python Enviroment](https://www.tutorialspoint.com/how-to-create-a-virtual-environment-in-python)
+ 2. Enable [Git Large File Storage](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage) to download the model weight files
+  - macOS (`brew install git-lfs`) or Windows ([Download installer](https://git-lfs.github.com/))
+  - `git install lfs` 
+  - `git lfs pull`
+
+ 3. Create a [Python Enviroment](https://www.tutorialspoint.com/how-to-create-a-virtual-environment-in-python)
     ```
     python -m venv .venv & ./venv/Scripts/activate)
     ```
- 3. Install the dependencies using pip
+
+ 4. Install the dependencies using pip
     ```
     pip install -r requirements.txt
     ```
- 4. With Tello Drone
+
+ 5. With Tello Drone
     - Connect the Tello Drone to the computer via wifi
     - Run python app.py
         ```
@@ -25,7 +32,7 @@ The app will be launched even if a drone is not connected to the WIFI.
     - Click `Start Streaming` to start the video feeds
     - Select the model from the drop down to the one you would like to use
     - Click `Take Off` button to lift the drone and drone should move based on the out put from the model
-5. Without drone, use our app_test script to run the models with sample images
+ 6. Without drone, use our app_test script to run the models with sample images
    - Run python app_test.py
         ```
         python app_test.py
@@ -37,7 +44,7 @@ The app will be launched even if a drone is not connected to the WIFI.
   <img src="test_output/test_output.png" alt="Model outputs saved here" width="400" />
 </p>
 
-6. Checkout the APP demo in YouTube, to learn how to use the models,view models outputs and navigate the drone
+7. Checkout the APP demo in YouTube, to learn how to use the models,view models outputs and navigate the drone
 <p align="center">
   <a href="https://www.youtube.com/watch?v=LKzUzrd4MzM" target="_blank">
         <img src="https://img.youtube.com/vi/LKzUzrd4MzM/0.jpg" alt="Tello Drone App Demo" width="400" />
