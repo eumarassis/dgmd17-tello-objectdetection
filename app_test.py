@@ -39,7 +39,7 @@ def main():
     # return 
 
     #Initialize Object Detector
-    objectDetectors = [YOLOObjectDetector(), AzureObjectDetector(), DepthPerceptionObjectDetector()]
+    objectDetectors = [YOLOObjectDetector(), YOLOFaceDetector(), AzureObjectDetector(), DepthPerceptionObjectDetector()]
     # detector = YOLOObjectDetector()
 
     filename = time.strftime("%Y%m%d-%H%M%S")

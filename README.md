@@ -35,7 +35,10 @@ The app will be launched even if a drone is not connected to the WIFI.
   <img src="output/test_output.png" alt="Model outputs saved here" width="400" />
 </p>
 
-6. How to use the app [App Video Demo](https://youtu.be/LKzUzrd4MzM)
+6. APP Demo to use the models,see outputs and navigate the drone
+
+[![Tello Drone App](https://img.youtube.com/vi/LKzUzrd4MzM/0.jpg)](https://www.youtube.com/watch?v=LKzUzrd4MzM)
+
 
 ## Project Structure
 
