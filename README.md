@@ -35,6 +35,8 @@ The app will be launched even if a drone is not connected to the WIFI.
   <img src="output/test_output.png" alt="Model outputs saved here" width="400" />
 </p>
 
+6. How to use the app [App Video Demo](https://youtu.be/LKzUzrd4MzM)
+
 ## Project Structure
 
 
