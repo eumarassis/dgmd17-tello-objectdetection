@@ -15,20 +15,23 @@ The app will be launched even if a drone is not connected to the WIFI.
     ```
     pip install -r requirements.txt
     ```
- 4. If you have the Tello Drone
-        * Connect the Tello Drone to the computer via wifi
-        * Run python app.py
-                ```python app.py```
-        * Once the app starts click `connect` button in the app to connect the app with Drone
-        * Click `Start Streaming` to start the video feeds
-        * Pick the model from the drop down to the one you would like to use
-        * Click `Take Off` button to lift the drone and drone should move based on the out put from the model
-5. If you do not have the drone you can use our test app
-        * Run python app_test.py
-                ```python app_test.py```
-        * We have inluded sample image for the models, you can change the images with people in here
-        * The models output will be saved to output dir
-        Cost volumes are commonly used for estimating depths from multiple input views:
+ 4. With Tello Drone
+    - Connect the Tello Drone to the computer via wifi
+    - Run python app.py
+        ```
+        python app.py
+        ```
+    - Once the app starts click `connect` button in the app to connect the app with Drone
+    - Click `Start Streaming` to start the video feeds
+    - Select the model from the drop down to the one you would like to use
+    - Click `Take Off` button to lift the drone and drone should move based on the out put from the model
+5. Without drone, use our app_test script to run the models with sample images
+   - Run python app_test.py
+        ```
+        python app_test.py
+        ```
+   - We have inluded sample image for the models, you can change the images with people in here
+   - The models output will be saved to output dir
 
 #### Model Output location
 <p align="center">
