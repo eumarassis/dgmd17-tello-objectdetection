@@ -32,7 +32,7 @@ The app will be launched even if a drone is not connected to the WIFI.
 
 #### Model Output location
 <p align="center">
-  <img src="output/test_output.png" alt="Model outputs saved here" width="400" />
+  <img src="test_output/test_output.png" alt="Model outputs saved here" width="400" />
 </p>
 
 6. APP Demo to use the models,see outputs and navigate the drone
