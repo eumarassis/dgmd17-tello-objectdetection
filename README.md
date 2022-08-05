@@ -70,3 +70,7 @@ File | Description
 [telemetry data](./assets/telemetry_v2.csv) | Telemetry data logged from all the models to do the analysis
 [ProjectEDA.ipynb](./EDA/ProjectEDA.ipynb)   | Python Notebook for Exploratory Data Analysis by Eumar and Muthu
 [requirements.txt](./requirements.txt) | Contains list of required python libraries
+
+## Azure Cognitive Services
+
+Since there is a cost to run the Azure Cognitive Services model in the Cloud, we have disabled it in the app. Please e-mail eumarassis@live.com to get a key for testing the model.

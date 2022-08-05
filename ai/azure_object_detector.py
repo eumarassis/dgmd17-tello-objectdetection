@@ -17,10 +17,10 @@ class AzureObjectDetector (ObjectDetector):
     """Azure Object Detector using YOLO"""
 
     def __init__(self):
-        # This key will serve all examples in this document.
-        self.KEY = "5d8006b1d51745c09051886b1b33ba8e"
+        # Azure Cognitive Services Key.
+        self.KEY = "[E-mail eumarassis@live.com to get the key]"
 
-        # This endpoint will be used in all examples in this quickstart.
+        # Azure Cognitive Services Keyt.
         self.ENDPOINT = "https://harvard-dgmd-computervision.cognitiveservices.azure.com"
 
         # Create an authenticated FaceClient.

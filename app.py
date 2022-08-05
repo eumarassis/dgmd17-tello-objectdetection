@@ -20,7 +20,8 @@ def main():
         ("YOLO: Face Detection Model", YOLOFaceDetector()), 
         ("YOLO: Real-Time Object Detection", YOLOObjectDetector()), \
         ("Self-Supervised Multi-Frame Monocular Depth", DepthPerceptionObjectDetector()), \
-        ("Azure Cognitive Service - People Detector", AzureObjectDetector())]
+        #("Azure Cognitive Service - People Detector", AzureObjectDetector()) #Disabled since there is a cost to run model. E-mail eumarassis@live.com to get a key and enable it
+        ]
 
     #Initialize UI Class
     tello_control_ui = TelloControlUI(tello, list_detector)

@@ -32,9 +32,9 @@ def main():
 
 
     #Initialize List of Object Detectors
-    objectDetectors = [YOLOFaceDetector(), YOLOObjectDetector(), AzureObjectDetector(), DepthPerceptionObjectDetector()]
+    #objectDetectors = [YOLOFaceDetector(), YOLOObjectDetector(), AzureObjectDetector(), DepthPerceptionObjectDetector()] #Azure is disabled since there is a cost to run model. E-mail eumarassis@live.com to get a key and enable it
+    objectDetectors = [YOLOFaceDetector(), YOLOObjectDetector(), DepthPerceptionObjectDetector()]
     
-
     #Run model test for each object detector
     filename = time.strftime("%Y%m%d-%H%M%S")
     for detector in objectDetectors:
