@@ -1,4 +1,4 @@
-#  <img src="https://github.com/eumarassis/Harvard-s109-TwitterBotDetection/raw/master/iacs.png" width="45" height="45" /> Robotics, Autonomous Vehicles, Drones, and Artificial Intelligence
+# Robotics, Autonomous Vehicles, Drones, and Artificial Intelligence
 
 **Harvard University**<br/>
 
