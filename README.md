@@ -2,7 +2,7 @@
 
 **Harvard University**<br/>
 
-**Final Project**: Object Detection, Depth Perception,and Adaptive Navigation with a Tello Drone
+**Final Project**: Object Detection, Depth Perception, and Adaptive Navigation with a Tello Drone
 
 **Group Members**: Ryan Abbate, Eumar Assis, Muthukaruppan (Muthu) Annamalai
 
