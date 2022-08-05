@@ -9,12 +9,12 @@ The app will be launched even if a drone is not connected to the WIFI.
 
  2. Enable [Git Large File Storage](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage) to download the model weight files
   - macOS (`brew install git-lfs`) or Windows ([Download installer](https://git-lfs.github.com/))
-  - `git install lfs` 
+  - `git lfs install` 
   - `git lfs pull`
 
  3. Create a [Python Enviroment](https://www.tutorialspoint.com/how-to-create-a-virtual-environment-in-python)
     ```
-    python -m venv .venv & ./venv/Scripts/activate)
+    python -m venv .venv & ./venv/Scripts/activate
     ```
 
  4. Install the dependencies using pip
