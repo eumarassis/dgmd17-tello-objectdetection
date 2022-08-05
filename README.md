@@ -1,5 +1,10 @@
-# dgmd17-tello-objectdetection
-Final project by Ryan, Muthu, and Eumar. Object Detection with Yolo, Azure, and Tello Drone
+#  <img src="https://github.com/eumarassis/Harvard-s109-TwitterBotDetection/raw/master/iacs.png" width="45" height="45" /> Robotics, Autonomous Vehicles, Drones, and Artificial Intelligence
+
+**Harvard University**<br/>
+
+**Final Project**: Object Detection, Depth Perception,and Adaptive Navigation with a Tello Drone
+
+**Group Members**: Ryan Abbate, Eumar Assis, Muthukaruppan (Muthu) Annamalai
 
 ## Step to run the project locally:
 
