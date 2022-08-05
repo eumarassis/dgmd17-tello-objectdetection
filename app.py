@@ -17,7 +17,7 @@ def main():
 
     #Initialize List of Object Detection Model Classes
     list_detector = [ \
-        #("YOLO: Face Detection Model", YOLOFaceDetector()), 
+        ("YOLO: Face Detection Model", YOLOFaceDetector()), 
         ("YOLO: Real-Time Object Detection", YOLOObjectDetector()), \
         ("Self-Supervised Multi-Frame Monocular Depth", DepthPerceptionObjectDetector()), \
         ("Azure Cognitive Service - People Detector", AzureObjectDetector())]

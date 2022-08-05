@@ -32,7 +32,7 @@ def main():
 
 
     #Initialize List of Object Detectors
-    objectDetectors = [YOLOObjectDetector(), AzureObjectDetector(), DepthPerceptionObjectDetector()]
+    objectDetectors = [YOLOFaceDetector(), YOLOObjectDetector(), AzureObjectDetector(), DepthPerceptionObjectDetector()]
     
 
     #Run model test for each object detector
